@@ -757,7 +757,7 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
-    def get_courses(self, **kwargs):
+    def get_courses(self, filters=None, **kwargs):
         """
         Return a list of active courses for the current user.
 
@@ -768,7 +768,7 @@ class Canvas(object):
             :class:`canvasapi.course.Course`
         """
         return PaginatedList(
-            Course, self.__requester, "GET", "courses", _kwargs=combine_kwargs(**kwargs)
+            Course, self.__requester, "GET", "courses", filters=filters, _kwargs=combine_kwargs(**kwargs)
         )
 
     def get_current_user(self):
