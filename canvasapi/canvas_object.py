@@ -17,7 +17,7 @@ class CanvasObject(object):
         # If attribute doesn't exist, raise an AttributeError
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-    def __init__(self, requester, attributes):
+    def __init__(self, requester, attributes, context=None):
         """
         :param requester: The requester to pass HTTP requests through.
         :type requester: :class:`canvasapi.requester.Requester`
@@ -25,6 +25,8 @@ class CanvasObject(object):
         :type attributes: dict
         """
         self._requester = requester
+        self._context = context
+
         self.set_attributes(attributes)
 
     def __repr__(self):  # pragma: no cover
@@ -49,3 +51,14 @@ class CanvasObject(object):
         for col in date_columns:
             if col in self.dataframe.columns:
                 self.dataframe[col] = pd.to_datetime(self.dataframe[col])
+
+    def get_context(self, return_type):
+        """
+        Retrieve the context based on the return_type.
+        """
+        if return_type == type(self).__name__:
+            return self
+        elif self._context:
+            return self._context.get_context(return_type)
+        else:
+            raise ValueError(f"Context of type '{return_type}' not found in the method chain.")

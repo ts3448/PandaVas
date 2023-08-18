@@ -10,6 +10,32 @@ class PaginatedList(object):
     def __str__(self):
         return str(self._df)
 
+    def __getattr__(self, name):
+        if hasattr(self._content_class, name) and callable(getattr(self._content_class, name)):
+            def method(*args, **kwargs):
+                results = []
+                return_type = kwargs.pop('return_type', None)  # Extract the return_type argument
+
+                for _, row in self._df.iterrows():
+                    # Pass the current PaginatedList as the context
+                    obj = self._content_class(self._requester, row.to_dict(), context=self)
+                    result = getattr(obj, name)(*args, **kwargs)
+
+                    if return_type:
+                        context_result = obj.get_context(return_type)
+                        if context_result:
+                            results.append(context_result.dataframe)
+                        continue
+
+                    if isinstance(result, PaginatedList):
+                        results.append(result._df)
+                    elif isinstance(result, object):
+                        results.append(result.dataframe)
+
+                return pd.concat(results, ignore_index=True)
+            return method
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
     def __getitem__(self, item):
         # If item is an integer or slice, return rows from the DataFrame
         if isinstance(item, (int, slice)):
@@ -132,8 +158,8 @@ class PaginatedList(object):
 
     def _is_larger_than(self, index):
         return len(self._df) > index or self._has_next()
-    
-    def apply_filters(self, items, filters):
+
+    def apply_filters(self, df, filters):
         operators_pattern = re.compile(r'^([><≥≤!=≠<>]+)')
 
         # Helper function to determine if a value is numeric
@@ -145,53 +171,46 @@ class PaginatedList(object):
                 return False
 
         # Helper function to handle numeric filters
-        def handle_numeric_filter(item_value, filter_value):
+        def handle_numeric_filter(series, filter_value):
             operator_match = operators_pattern.match(filter_value)
             operator = operator_match.group(0) if operator_match else None
             numeric_value = float(re.sub(operators_pattern, '', filter_value))
 
             if operator in ['>', '≥']:
-                return item_value > numeric_value
+                return series > numeric_value
             elif operator in ['<', '≤']:
-                return item_value < numeric_value
+                return series < numeric_value
             elif operator in ['!=', '≠', '<>']:
-                return item_value != numeric_value
+                return series != numeric_value
             else:
-                return item_value == numeric_value
+                return series == numeric_value
 
         # Helper function to handle non-numeric filters
-        def handle_non_numeric_filter(item_value, filter_value):
+        def handle_non_numeric_filter(series, filter_value):
             if filter_value.startswith(('!=', '≠', '<>')):
                 excluded_value = re.sub(operators_pattern, '', filter_value)
-                return item_value != excluded_value
+                return series != excluded_value
             regex_pattern = '^' + filter_value.replace('*', '.*') + '$'
-            return re.match(regex_pattern, item_value)
+            return series.str.match(regex_pattern)
 
-        # If filters is empty, return the original items
+        # If filters is empty, return the original DataFrame
         if not filters:
-            return items
+            return df
 
         # Main filtering logic
-        filtered_items = []
-        for item in items:
-            valid = True
-            for filter_key, filter_values in filters.items():
-                if filter_key not in item:
-                    print(f"Item does not have a property named {filter_key}")
-                    valid = False
-                    break
+        mask = pd.Series([True] * len(df))
+        for filter_key, filter_values in filters.items():
+            if filter_key not in df.columns:
+                print(f"DataFrame does not have a column named {filter_key}")
+                continue
 
-                for filter_value in filter_values:
-                    if is_numeric(re.sub(operators_pattern, '', filter_value)):
-                        if not handle_numeric_filter(item[filter_key], filter_value):
-                            valid = False
-                            break
-                    else:
-                        if not handle_non_numeric_filter(item[filter_key], filter_value):
-                            valid = False
-                            break
+            column_mask = pd.Series([False] * len(df))
+            for filter_value in filter_values:
+                if is_numeric(re.sub(operators_pattern, '', filter_value)):
+                    column_mask |= handle_numeric_filter(df[filter_key], filter_value)
+                else:
+                    column_mask |= handle_non_numeric_filter(df[filter_key], filter_value)
 
-            if valid:
-                filtered_items.append(item)
+            mask &= column_mask
 
-        return filtered_items
+        return df[mask].reset_index(drop=True)

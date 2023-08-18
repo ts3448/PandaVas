@@ -72,6 +72,7 @@ class Canvas(object):
 
         self.__requester = Requester(base_url, access_token)
 
+    # DELETE Methods
     def clear_course_nicknames(self, **kwargs):
         """
         Remove all stored course nicknames.
@@ -91,6 +92,7 @@ class Canvas(object):
         )
         return response.json().get("message") == "OK"
 
+    # PUT Methods
     def conversations_batch_update(self, conversation_ids, event, **kwargs):
         """
 
@@ -137,6 +139,7 @@ class Canvas(object):
         return_progress = Progress(self.__requester, response.json())
         return return_progress
 
+    # GET Methods
     def conversations_get_running_batches(self, **kwargs):
         """
         Returns any currently running conversation batches for the current user.
@@ -156,20 +159,6 @@ class Canvas(object):
 
         return response.json()
 
-    def conversations_mark_all_as_read(self, **kwargs):
-        """
-        Mark all conversations as read.
-
-        :calls: `POST /api/v1/conversations/mark_all_as_read \
-        <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.mark_all_as_read>`_
-
-        :rtype: `bool`
-        """
-        response = self.__requester.request(
-            "POST", "conversations/mark_all_as_read", _kwargs=combine_kwargs(**kwargs)
-        )
-        return response.json() == {}
-
     def conversations_unread_count(self, **kwargs):
         """
         Get the number of unread conversations for the current user
@@ -185,204 +174,6 @@ class Canvas(object):
         )
 
         return response.json()
-
-    def create_account(self, **kwargs):
-        """
-        Create a new root account.
-
-        :calls: `POST /api/v1/accounts \
-        <https://canvas.instructure.com/doc/api/accounts.html#method.accounts.create>`_
-
-        :rtype: :class:`canvasapi.account.Account`
-        """
-        response = self.__requester.request(
-            "POST", "accounts", _kwargs=combine_kwargs(**kwargs)
-        )
-        return Account(self.__requester, response.json())
-
-    def create_appointment_group(self, appointment_group, **kwargs):
-        """
-        Create a new Appointment Group.
-
-        :calls: `POST /api/v1/appointment_groups \
-        <https://canvas.instructure.com/doc/api/appointment_groups.html#method.appointment_groups.create>`_
-
-        :param appointment_group: The attributes of the appointment group.
-        :type appointment_group: `dict`
-        :param title: The title of the appointment group.
-        :type title: `str`
-        :rtype: :class:`canvasapi.appointment_group.AppointmentGroup`
-        """
-        if (
-            isinstance(appointment_group, dict)
-            and "context_codes" in appointment_group
-            and "title" in appointment_group
-        ):
-            kwargs["appointment_group"] = appointment_group
-
-        elif (
-            isinstance(appointment_group, dict)
-            and "context_codes" not in appointment_group
-        ):
-            raise RequiredFieldMissing(
-                "Dictionary with key 'context_codes' is missing."
-            )
-
-        elif isinstance(appointment_group, dict) and "title" not in appointment_group:
-            raise RequiredFieldMissing("Dictionary with key 'title' is missing.")
-
-        response = self.__requester.request(
-            "POST", "appointment_groups", _kwargs=combine_kwargs(**kwargs)
-        )
-
-        return AppointmentGroup(self.__requester, response.json())
-
-    def create_calendar_event(self, calendar_event, **kwargs):
-        """
-        Create a new Calendar Event.
-
-        :calls: `POST /api/v1/calendar_events \
-        <https://canvas.instructure.com/doc/api/calendar_events.html#method.calendar_events_api.create>`_
-
-        :param calendar_event: The attributes of the calendar event.
-        :type calendar_event: `dict`
-        :rtype: :class:`canvasapi.calendar_event.CalendarEvent`
-        """
-        if isinstance(calendar_event, dict) and "context_code" in calendar_event:
-            kwargs["calendar_event"] = calendar_event
-        else:
-            raise RequiredFieldMissing(
-                "Dictionary with key 'context_code' is required."
-            )
-
-        response = self.__requester.request(
-            "POST", "calendar_events", _kwargs=combine_kwargs(**kwargs)
-        )
-
-        return CalendarEvent(self.__requester, response.json())
-
-    def create_conversation(self, recipients, body, **kwargs):
-        """
-        Create a new Conversation.
-
-        :calls: `POST /api/v1/conversations \
-        <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.create>`_
-
-        :param recipients: An array of recipient ids.
-            These may be user ids or course/group ids prefixed
-            with 'course\\_' or 'group\\_' respectively,
-            e.g. recipients=['1', '2', 'course_3']
-        :type recipients: `list` of `str`
-        :param body: The body of the message being added.
-        :type body: `str`
-        :rtype: list of :class:`canvasapi.conversation.Conversation`
-        """
-        kwargs["recipients"] = recipients
-        kwargs["body"] = body
-
-        response = self.__requester.request(
-            "POST", "conversations", _kwargs=combine_kwargs(**kwargs)
-        )
-        return [Conversation(self.__requester, convo) for convo in response.json()]
-
-    def create_group(self, **kwargs):
-        """
-        Create a group
-
-        :calls: `POST /api/v1/groups/ \
-        <https://canvas.instructure.com/doc/api/groups.html#method.groups.create>`_
-
-        :rtype: :class:`canvasapi.group.Group`
-        """
-        response = self.__requester.request(
-            "POST", "groups", _kwargs=combine_kwargs(**kwargs)
-        )
-        return Group(self.__requester, response.json())
-
-    def create_jwt(self, **kwargs):
-        """
-        Creates a unique JWT to use with other Canvas services.
-
-        :calls: `POST /api/v1/jwts \
-        <https://canvas.instructure.com/doc/api/jw_ts.html#method.jwts.create>`_
-
-        :rtype: list of :class:`canvasapi.jwt.JWT`
-        """
-        response = self.__requester.request(
-            "POST", "jwts", _kwargs=combine_kwargs(**kwargs)
-        )
-
-        return JWT(self.__requester, response.json())
-
-    def create_planner_note(self, **kwargs):
-        """
-        Create a planner note for the current user
-
-        :calls: `POST /api/v1/planner_notes \
-        <https://canvas.instructure.com/doc/api/planner.html#method.planner_notes.create>`_
-
-        :rtype: :class:`canvasapi.planner.PlannerNote`
-        """
-        response = self.__requester.request(
-            "POST", "planner_notes", _kwargs=combine_kwargs(**kwargs)
-        )
-        return PlannerNote(self.__requester, response.json())
-
-    def create_planner_override(self, plannable_type, plannable_id, **kwargs):
-        """
-        Create a planner override for the current user
-
-        :calls: `POST /api/v1/planner/overrides \
-        <https://canvas.instructure.com/doc/api/planner.html#method.planner_overrides.create>`_
-
-        :param plannable_type: Type of the item that you are overriding in the planner
-        :type plannable_type: str
-
-        :param plannable_id: ID of the item that you are overriding in the planner
-        :type plannable_id: int or :class:`canvasapi.planner.PlannerOverride`
-
-        :rtype: :class:`canvasapi.planner.PlannerOverride`
-        """
-        if isinstance(plannable_type, str):
-            kwargs["plannable_type"] = plannable_type
-        else:
-            raise RequiredFieldMissing("plannable_type is required as a str.")
-        if isinstance(plannable_id, int):
-            kwargs["plannable_id"] = plannable_id
-        else:
-            raise RequiredFieldMissing("plannable_id is required as an int.")
-
-        response = self.__requester.request(
-            "POST", "planner/overrides", _kwargs=combine_kwargs(**kwargs)
-        )
-        return PlannerOverride(self.__requester, response.json())
-
-    def create_poll(self, polls, **kwargs):
-        """
-        Create a new poll for the current user.
-
-        :calls: `POST /api/v1/polls \
-        <https://canvas.instructure.com/doc/api/polls.html#method.polling/polls.create>`_
-
-        :param polls: List of polls to create. `'question'` key is required.
-        :type polls: list of dict
-        :rtype: :class:`canvasapi.poll.Poll`
-        """
-        if (
-            isinstance(polls, list)
-            and isinstance(polls[0], dict)
-            and "question" in polls[0]
-        ):
-            kwargs["polls"] = polls
-        else:
-            raise RequiredFieldMissing(
-                "List of dictionaries each with key 'question' is required."
-            )
-
-        response = self.__requester.request(
-            "POST", "polls", _kwargs=combine_kwargs(**kwargs)
-        )
-        return Poll(self.__requester, response.json()["polls"][0])
 
     def get_account(self, account, use_sis_id=False, **kwargs):
         """
@@ -1258,6 +1049,269 @@ class Canvas(object):
             _kwargs=combine_kwargs(**kwargs),
         )
 
+    def search_accounts(self, **kwargs):
+        """
+        Return a list of up to 5 matching account domains. Partial matches on
+        name and domain are supported.
+
+        :calls: `GET /api/v1/accounts/search \
+        <https://canvas.instructure.com/doc/api/account_domain_lookups.html#method.account_domain_lookups.search>`_
+
+        :rtype: dict
+        """
+        response = self.__requester.request(
+            "GET", "accounts/search", _kwargs=combine_kwargs(**kwargs)
+        )
+        return response.json()
+
+    def search_all_courses(self, **kwargs):
+        """
+        List all the courses visible in the public index.
+        Returns a list of dicts, each containing a single course.
+
+        :calls: `GET /api/v1/search/all_courses \
+        <https://canvas.instructure.com/doc/api/search.html#method.search.all_courses>`_
+
+        :rtype: `list`
+        """
+        response = self.__requester.request(
+            "GET", "search/all_courses", _kwargs=combine_kwargs(**kwargs)
+        )
+        return response.json()
+
+    def search_recipients(self, **kwargs):
+        """
+        Find valid recipients (users, courses and groups) that the current user
+        can send messages to.
+        Returns a list of mixed data types.
+
+        :calls: `GET /api/v1/search/recipients  \
+        <https://canvas.instructure.com/doc/api/search.html#method.search.recipients>`_
+
+        :rtype: `list`
+        """
+        if "search" not in kwargs:
+            kwargs["search"] = " "
+
+        response = self.__requester.request(
+            "GET", "search/recipients", _kwargs=combine_kwargs(**kwargs)
+        )
+        return response.json()
+
+    # POST Methods 
+    # These are commented out to preserve
+    def conversations_mark_all_as_read(self, **kwargs):
+        """
+        Mark all conversations as read.
+
+        :calls: `POST /api/v1/conversations/mark_all_as_read \
+        <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.mark_all_as_read>`_
+
+        :rtype: `bool`
+        """
+        response = self.__requester.request(
+            "POST", "conversations/mark_all_as_read", _kwargs=combine_kwargs(**kwargs)
+        )
+        return response.json() == {}
+
+    def create_account(self, **kwargs):
+        """
+        Create a new root account.
+
+        :calls: `POST /api/v1/accounts \
+        <https://canvas.instructure.com/doc/api/accounts.html#method.accounts.create>`_
+
+        :rtype: :class:`canvasapi.account.Account`
+        """
+        response = self.__requester.request(
+            "POST", "accounts", _kwargs=combine_kwargs(**kwargs)
+        )
+        return Account(self.__requester, response.json())
+
+    def create_appointment_group(self, appointment_group, **kwargs):
+        """
+        Create a new Appointment Group.
+
+        :calls: `POST /api/v1/appointment_groups \
+        <https://canvas.instructure.com/doc/api/appointment_groups.html#method.appointment_groups.create>`_
+
+        :param appointment_group: The attributes of the appointment group.
+        :type appointment_group: `dict`
+        :param title: The title of the appointment group.
+        :type title: `str`
+        :rtype: :class:`canvasapi.appointment_group.AppointmentGroup`
+        """
+        if (
+            isinstance(appointment_group, dict)
+            and "context_codes" in appointment_group
+            and "title" in appointment_group
+        ):
+            kwargs["appointment_group"] = appointment_group
+
+        elif (
+            isinstance(appointment_group, dict)
+            and "context_codes" not in appointment_group
+        ):
+            raise RequiredFieldMissing(
+                "Dictionary with key 'context_codes' is missing."
+            )
+
+        elif isinstance(appointment_group, dict) and "title" not in appointment_group:
+            raise RequiredFieldMissing("Dictionary with key 'title' is missing.")
+
+        response = self.__requester.request(
+            "POST", "appointment_groups", _kwargs=combine_kwargs(**kwargs)
+        )
+
+        return AppointmentGroup(self.__requester, response.json())
+
+    def create_calendar_event(self, calendar_event, **kwargs):
+        """
+        Create a new Calendar Event.
+
+        :calls: `POST /api/v1/calendar_events \
+        <https://canvas.instructure.com/doc/api/calendar_events.html#method.calendar_events_api.create>`_
+
+        :param calendar_event: The attributes of the calendar event.
+        :type calendar_event: `dict`
+        :rtype: :class:`canvasapi.calendar_event.CalendarEvent`
+        """
+        if isinstance(calendar_event, dict) and "context_code" in calendar_event:
+            kwargs["calendar_event"] = calendar_event
+        else:
+            raise RequiredFieldMissing(
+                "Dictionary with key 'context_code' is required."
+            )
+
+        response = self.__requester.request(
+            "POST", "calendar_events", _kwargs=combine_kwargs(**kwargs)
+        )
+
+        return CalendarEvent(self.__requester, response.json())
+
+    def create_conversation(self, recipients, body, **kwargs):
+        """
+        Create a new Conversation.
+
+        :calls: `POST /api/v1/conversations \
+        <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.create>`_
+
+        :param recipients: An array of recipient ids.
+            These may be user ids or course/group ids prefixed
+            with 'course\\_' or 'group\\_' respectively,
+            e.g. recipients=['1', '2', 'course_3']
+        :type recipients: `list` of `str`
+        :param body: The body of the message being added.
+        :type body: `str`
+        :rtype: list of :class:`canvasapi.conversation.Conversation`
+        """
+        kwargs["recipients"] = recipients
+        kwargs["body"] = body
+
+        response = self.__requester.request(
+            "POST", "conversations", _kwargs=combine_kwargs(**kwargs)
+        )
+        return [Conversation(self.__requester, convo) for convo in response.json()]
+
+    def create_group(self, **kwargs):
+        """
+        Create a group
+
+        :calls: `POST /api/v1/groups/ \
+        <https://canvas.instructure.com/doc/api/groups.html#method.groups.create>`_
+
+        :rtype: :class:`canvasapi.group.Group`
+        """
+        response = self.__requester.request(
+            "POST", "groups", _kwargs=combine_kwargs(**kwargs)
+        )
+        return Group(self.__requester, response.json())
+
+    def create_jwt(self, **kwargs):
+        """
+        Creates a unique JWT to use with other Canvas services.
+
+        :calls: `POST /api/v1/jwts \
+        <https://canvas.instructure.com/doc/api/jw_ts.html#method.jwts.create>`_
+
+        :rtype: list of :class:`canvasapi.jwt.JWT`
+        """
+        response = self.__requester.request(
+            "POST", "jwts", _kwargs=combine_kwargs(**kwargs)
+        )
+
+        return JWT(self.__requester, response.json())
+
+    def create_planner_note(self, **kwargs):
+        """
+        Create a planner note for the current user
+
+        :calls: `POST /api/v1/planner_notes \
+        <https://canvas.instructure.com/doc/api/planner.html#method.planner_notes.create>`_
+
+        :rtype: :class:`canvasapi.planner.PlannerNote`
+        """
+        response = self.__requester.request(
+            "POST", "planner_notes", _kwargs=combine_kwargs(**kwargs)
+        )
+        return PlannerNote(self.__requester, response.json())
+
+    def create_planner_override(self, plannable_type, plannable_id, **kwargs):
+        """
+        Create a planner override for the current user
+
+        :calls: `POST /api/v1/planner/overrides \
+        <https://canvas.instructure.com/doc/api/planner.html#method.planner_overrides.create>`_
+
+        :param plannable_type: Type of the item that you are overriding in the planner
+        :type plannable_type: str
+
+        :param plannable_id: ID of the item that you are overriding in the planner
+        :type plannable_id: int or :class:`canvasapi.planner.PlannerOverride`
+
+        :rtype: :class:`canvasapi.planner.PlannerOverride`
+        """
+        if isinstance(plannable_type, str):
+            kwargs["plannable_type"] = plannable_type
+        else:
+            raise RequiredFieldMissing("plannable_type is required as a str.")
+        if isinstance(plannable_id, int):
+            kwargs["plannable_id"] = plannable_id
+        else:
+            raise RequiredFieldMissing("plannable_id is required as an int.")
+
+        response = self.__requester.request(
+            "POST", "planner/overrides", _kwargs=combine_kwargs(**kwargs)
+        )
+        return PlannerOverride(self.__requester, response.json())
+
+    def create_poll(self, polls, **kwargs):
+        """
+        Create a new poll for the current user.
+
+        :calls: `POST /api/v1/polls \
+        <https://canvas.instructure.com/doc/api/polls.html#method.polling/polls.create>`_
+
+        :param polls: List of polls to create. `'question'` key is required.
+        :type polls: list of dict
+        :rtype: :class:`canvasapi.poll.Poll`
+        """
+        if (
+            isinstance(polls, list)
+            and isinstance(polls[0], dict)
+            and "question" in polls[0]
+        ):
+            kwargs["polls"] = polls
+        else:
+            raise RequiredFieldMissing(
+                "List of dictionaries each with key 'question' is required."
+            )
+
+        response = self.__requester.request(
+            "POST", "polls", _kwargs=combine_kwargs(**kwargs)
+        )
+        return Poll(self.__requester, response.json()["polls"][0])
+
     def graphql(self, query, variables=None, **kwargs):
         """
         Makes a GraphQL formatted request to Canvas
@@ -1336,55 +1390,6 @@ class Canvas(object):
             "POST", uri, _kwargs=combine_kwargs(**kwargs)
         )
         return CalendarEvent(self.__requester, response.json())
-
-    def search_accounts(self, **kwargs):
-        """
-        Return a list of up to 5 matching account domains. Partial matches on
-        name and domain are supported.
-
-        :calls: `GET /api/v1/accounts/search \
-        <https://canvas.instructure.com/doc/api/account_domain_lookups.html#method.account_domain_lookups.search>`_
-
-        :rtype: dict
-        """
-        response = self.__requester.request(
-            "GET", "accounts/search", _kwargs=combine_kwargs(**kwargs)
-        )
-        return response.json()
-
-    def search_all_courses(self, **kwargs):
-        """
-        List all the courses visible in the public index.
-        Returns a list of dicts, each containing a single course.
-
-        :calls: `GET /api/v1/search/all_courses \
-        <https://canvas.instructure.com/doc/api/search.html#method.search.all_courses>`_
-
-        :rtype: `list`
-        """
-        response = self.__requester.request(
-            "GET", "search/all_courses", _kwargs=combine_kwargs(**kwargs)
-        )
-        return response.json()
-
-    def search_recipients(self, **kwargs):
-        """
-        Find valid recipients (users, courses and groups) that the current user
-        can send messages to.
-        Returns a list of mixed data types.
-
-        :calls: `GET /api/v1/search/recipients  \
-        <https://canvas.instructure.com/doc/api/search.html#method.search.recipients>`_
-
-        :rtype: `list`
-        """
-        if "search" not in kwargs:
-            kwargs["search"] = " "
-
-        response = self.__requester.request(
-            "GET", "search/recipients", _kwargs=combine_kwargs(**kwargs)
-        )
-        return response.json()
 
     def set_course_nickname(self, course, nickname, **kwargs):
         """
