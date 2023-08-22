@@ -2365,7 +2365,7 @@ class Course(CanvasObject):
 
         return response.json()
 
-    def get_users(self, **kwargs):
+    def get_users(self, filters=None, **kwargs):
         """
         List all users in a course.
 
@@ -2382,6 +2382,7 @@ class Course(CanvasObject):
             self._requester,
             "GET",
             "courses/{}/search_users".format(self.id),
+            filters=filters,
             _kwargs=combine_kwargs(**kwargs),
         )
 

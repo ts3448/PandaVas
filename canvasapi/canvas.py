@@ -73,40 +73,42 @@ class Canvas(object):
         self.__requester = Requester(base_url, access_token)
 
     # GET Methods
-    def conversations_get_running_batches(self, filters=None, **kwargs):
-        """
-        Returns any currently running conversation batches for the current user.
-        Conversation batches are created when a bulk private message is sent
-        asynchronously.
+    # need to revisit
+    # def conversations_get_running_batches(self, filters=None, **kwargs):
+    #     """
+    #     Returns any currently running conversation batches for the current user.
+    #     Conversation batches are created when a bulk private message is sent
+    #     asynchronously.
 
-        :calls: `GET /api/v1/conversations/batches \
-            <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.batches>`_
+    #     :calls: `GET /api/v1/conversations/batches \
+    #         <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.batches>`_
 
-        :returns: dict with list of batch objects - not currently a Class
-        :rtype: `dict`
-        """
+    #     :returns: dict with list of batch objects - not currently a Class
+    #     :rtype: `dict`
+    #     """
 
-        response = self.__requester.request(
-            "GET", "conversations/batches", filters=filters, _kwargs=combine_kwargs(**kwargs)
-        )
+    #     response = self.__requester.request(
+    #         "GET", "conversations/batches", filters=filters, _kwargs=combine_kwargs(**kwargs)
+    #     )
 
-        return response.json()
+    #     return response.json()
 
-    def conversations_unread_count(self, filters=None, **kwargs):
-        """
-        Get the number of unread conversations for the current user
+    # need to revisit
+    # def conversations_unread_count(self, filters=None, **kwargs):
+    #     """
+    #     Get the number of unread conversations for the current user
 
-        :calls: `GET /api/v1/conversations/unread_count \
-        <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.unread_count>`_
+    #     :calls: `GET /api/v1/conversations/unread_count \
+    #     <https://canvas.instructure.com/doc/api/conversations.html#method.conversations.unread_count>`_
 
-        :returns: simple object with unread_count, example: {'unread_count': '7'}
-        :rtype: `dict`
-        """
-        response = self.__requester.request(
-            "GET", "conversations/unread_count", filters=filters, _kwargs=combine_kwargs(**kwargs)
-        )
+    #     :returns: simple object with unread_count, example: {'unread_count': '7'}
+    #     :rtype: `dict`
+    #     """
+    #     response = self.__requester.request(
+    #         "GET", "conversations/unread_count", filters=filters, _kwargs=combine_kwargs(**kwargs)
+    #     )
 
-        return response.json()
+    #     return response.json()
 
     def get_account(self, account, use_sis_id=False, **kwargs):
         """

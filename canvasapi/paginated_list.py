@@ -59,10 +59,12 @@ class PaginatedList(object):
         extra_attribs=None,
         _root=None,
         _url_override=None,
+        context=None,
         **kwargs
     ):
         self._df = pd.DataFrame()
         self._filters = filters or {}
+        self._context = context
 
         self._requester = requester
         self._content_class = content_class
